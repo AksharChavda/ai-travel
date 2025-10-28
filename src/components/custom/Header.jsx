@@ -85,7 +85,7 @@ function Header() {
                   <img
                     src={user.picture}
                     alt={user.name || "User"}
-                    className="h-[40px] w-[40px] rounded-full object-cover"
+                    className="h-10 w-10 rounded-full object-cover"
                   />
                   <p className="font-semibold text-sm">{user.name}</p>
                   <p className="text-xs text-gray-500">{user.email}</p>
