@@ -1,5 +1,5 @@
 import React from "react";
-import PlaceCardItem from "./PlaceCardItem.jsx";
+import PlaceCardItem from "./placeCardItem.jsx";
 
 function PlacesToVisit({ trip }) {
   const itinerary = trip?.tripData?.itinerary || [];
