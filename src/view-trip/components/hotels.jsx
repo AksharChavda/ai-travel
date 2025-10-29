@@ -1,26 +1,27 @@
 import React, { useEffect, useState } from "react";
 
 function Hotels({ trip }) {
-  const hotelList = trip?.tripData?.hotel_options || [];
+  const hotelList = trip?.tripData?.HotelOptions || [];
   const [images, setImages] = useState({});
 
   useEffect(() => {
     const fetchImages = async () => {
       const apiKey = import.meta.env.VITE_PEXELS_API_KEY;
       const promises = hotelList.map(async (hotel) => {
-        const query = encodeURIComponent(hotel.hotelName || hotel.HotelName || "hotel");
+        const query = encodeURIComponent(hotel.HotelName || "hotel");
         try {
-          const res = await fetch(`https://api.pexels.com/v1/search?query=${query}&per_page=1`, {
-            headers: { Authorization: apiKey },
-          });
+          const res = await fetch(
+            `https://api.pexels.com/v1/search?query=${query}&per_page=1`,
+            { headers: { Authorization: apiKey } }
+          );
           const data = await res.json();
           if (data.photos && data.photos.length > 0) {
-            return { [hotel.hotelName]: data.photos[0].src.medium };
+            return { [hotel.HotelName]: data.photos[0].src.medium };
           }
         } catch (err) {
-          console.error("Error fetching image for", hotel.hotelName, err);
+          console.error("Error fetching image for", hotel.HotelName, err);
         }
-        return { [hotel.hotelName]: "https://via.placeholder.com/400x300?text=No+Image" };
+        return { [hotel.HotelName]: "https://via.placeholder.com/400x300?text=No+Image" };
       });
 
       const results = await Promise.all(promises);
@@ -39,12 +40,12 @@ function Hotels({ trip }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 mt-5">
           {hotelList.map((hotel, i) => {
             const img =
-              images[hotel.hotelName] ||
+              images[hotel.HotelName] ||
               hotel.ImageURL ||
               "https://via.placeholder.com/400x300?text=Loading...";
 
             const mapQuery = encodeURIComponent(
-              `${hotel.hotelName} ${hotel.address || ""}`
+              `${hotel.HotelName} ${hotel.Address || ""}`
             );
             const mapLink = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
 
@@ -59,7 +60,7 @@ function Hotels({ trip }) {
                 <div className="h-44 w-full bg-gray-100 overflow-hidden">
                   <img
                     src={img}
-                    alt={hotel.hotelName || "Hotel Image"}
+                    alt={hotel.HotelName || "Hotel Image"}
                     loading="lazy"
                     onError={(e) =>
                       (e.currentTarget.src =
@@ -70,11 +71,11 @@ function Hotels({ trip }) {
                 </div>
 
                 <div className="p-3">
-                  <h3 className="font-medium">{hotel.hotelName}</h3>
-                  <p className="text-xs text-gray-500 mt-1">📍 {hotel.address}</p>
+                  <h3 className="font-medium">{hotel.HotelName}</h3>
+                  <p className="text-xs text-gray-500 mt-1">📍 {hotel.Address}</p>
                   <div className="flex items-center justify-between mt-2 text-sm">
-                    <span>⭐ {hotel.rating}</span>
-                    <span className="text-gray-600">{hotel.priceRange}</span>
+                    <span>⭐ {hotel.Rating}</span>
+                    <span className="text-gray-600">{hotel.PriceRange}</span>
                   </div>
                 </div>
               </a>

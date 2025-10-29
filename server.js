@@ -1,78 +1,85 @@
-// --- Imports ---
-import dotenv from "dotenv";
-import express from "express";
-import bodyParser from "body-parser";
-import { GoogleGenerativeAI } from "@google/generative-ai"; // ✅ correct import for Gemini
-import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
+// server.js (ES Module Version)
 
-// --- Setup ---
+// 🚨 CRITICAL IMPORTS: Using ES Module syntax (import) because your package.json has "type": "module"
+import dotenv from 'dotenv';
+import express from 'express';
+import bodyParser from 'body-parser';
+import { GoogleGenAI } from '@google/genai';
+import cors from 'cors'; // Import the CORS middleware
+
+// Load environment variables from .env file immediately
 dotenv.config();
-const app = express();
 
-// Fix __dirname for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// --- Configuration ---
+const PORT = 3001; 
+const CLIENT_ORIGIN = 'http://localhost:5173'; // Your Vite development server URL
 
-// --- Config ---
-const PORT = process.env.PORT || 3001;
+// Get the API key from environment variables
+const GEMINI_API_KEY = process.env.VITE_GOOGLE_GEMINI_AI_API_KEY; 
 
-// ✅ Allow your deployed frontend on Vercel
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "https://ai-travel2.vercel.app";
-
-// ✅ Load Gemini API key from .env
-const GEMINI_API_KEY = process.env.VITE_GOOGLE_GEMINI_AI_API_KEY;
-
-// --- Validations ---
 if (!GEMINI_API_KEY) {
-  console.error("❌ Missing VITE_GOOGLE_GEMINI_AI_API_KEY in .env file");
-  process.exit(1);
+    console.error("FATAL ERROR: VITE_GOOGLE_GEMINI_AI_API_KEY is not set in environment variables.");
+    console.error("Please check your .env file in the root directory.");
+    process.exit(1); 
 }
 
-// --- Middleware ---
-app.use(
-  cors({
+// --- Express Setup ---
+const app = express();
+
+// 🚨 CORS FIX: Configure CORS to allow requests from your specific Vite client origin
+const corsOptions = {
     origin: CLIENT_ORIGIN,
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
-app.use(bodyParser.json());
+    methods: ['POST'],
+    optionsSuccessStatus: 200
+};
 
-// --- Initialize Gemini AI ---
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+app.use(cors(corsOptions)); 
+app.use(bodyParser.json()); // Middleware to parse JSON bodies
 
-// --- API Endpoint ---
-app.post("/api/generate-trip", async (req, res) => {
-  const { finalPrompt } = req.body;
+// Initialize the AI model
+const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
-  if (!finalPrompt) {
-    return res.status(400).json({ error: "Missing finalPrompt in request body." });
-  }
+// --- API Route ---
+app.post('/api/generate-trip', async (req, res) => {
+    
+    const { finalPrompt } = req.body;
 
-  try {
-    const result = await model.generateContent(finalPrompt);
-    const responseText = result.response.text();
-    res.status(200).json({ tripPlan: responseText });
-  } catch (error) {
-    console.error("❌ AI Generation Error:", error.message);
-    res.status(500).json({
-      error: "AI service failed to generate a plan.",
-      details: error.message,
-    });
-  }
+    if (!finalPrompt) {
+        return res.status(400).json({ error: 'Missing finalPrompt in request body.' });
+    }
+    
+    console.log("Received prompt on server. Generating response...");
+
+    try {
+        const config = {
+            // Tool use is now removed to fix the error.
+            responseMimeType: "application/json", 
+        };
+        
+        const response = await ai.models.generateContent({ 
+            model: 'gemini-flash-latest',
+            contents: [{ role: 'user', parts: [{ text: finalPrompt }] }],
+            config: config,
+        });
+        
+        const responseText = response?.text;
+
+        // Send the raw JSON text back to the client
+        res.status(200).json({ tripPlan: responseText });
+
+    } catch (error) {
+        console.error("AI Generation Error:", error.message);
+        // Log the error and send a generic 500 status back to the client
+        res.status(500).json({ 
+            error: 'AI service failed to generate a plan.', 
+            details: error.message 
+        });
+    }
 });
 
-// --- Optional: Serve frontend (only if you want Render to host it too) ---
-app.use(express.static(path.join(__dirname, "dist")));
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
-});
-
-// --- Start Server ---
+// --- Server Start ---
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`✅ CORS configured for ${CLIENT_ORIGIN}`);
+    console.log(`\n✅ Server listening securely on http://localhost:${PORT}`);
+    console.log(`Backend API Key loaded successfully.`);
+    console.log(`CORS is configured to allow requests from ${CLIENT_ORIGIN}`);
 });
