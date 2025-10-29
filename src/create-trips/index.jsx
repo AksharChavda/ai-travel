@@ -148,7 +148,7 @@ function CreateTrips() {
         
         // 2. Fetch from the secure backend endpoint
         try {
-            const response = await fetch('http://localhost:3001/api/generate-trip', { 
+            const response = await fetch('https://ai-travel-jkwl.onrender.com/api/generate-trip', { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
