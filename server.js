@@ -71,7 +71,7 @@ app.post("/api/generate-trip", async (req, res) => {
 // --- Serve React Frontend (Vite Build) ---
 app.use(express.static(path.join(__dirname, "dist")));
 
-app.get("*", (req, res) => {
+app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
