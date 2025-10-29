@@ -9,7 +9,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "nodemon server.js",
-    "start:dev": "npm-run-all --parallel server dev"
+    "start:dev": "npm-run-all --parallel server dev",
+    "start": "node server.js"
+
+
   },
   "dependencies": {
     "@google/genai": "^1.27.0",
